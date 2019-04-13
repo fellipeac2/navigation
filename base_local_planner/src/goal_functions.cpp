@@ -38,6 +38,7 @@
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/utils.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include "tf2_ros/transform_listener.h"
 
 namespace base_local_planner {
 
@@ -101,9 +102,10 @@ namespace base_local_planner {
       ROS_ERROR("Received plan with zero length");
       return false;
     }
-
     const geometry_msgs::PoseStamped& plan_pose = global_plan[0];
     try {
+      //My modifications
+      tf.canTransform(global_frame, ros::Time::now(), plan_pose.header.frame_id, plan_pose.header.stamp, plan_pose.header.frame_id, ros::Duration(0.5));
       // get plan_to_global_transform from plan frame to global_frame
       geometry_msgs::TransformStamped plan_to_global_transform = tf.lookupTransform(global_frame, ros::Time(),
           plan_pose.header.frame_id, plan_pose.header.stamp, plan_pose.header.frame_id, ros::Duration(0.5));
@@ -156,7 +158,7 @@ namespace base_local_planner {
       return false;
     }
     catch(tf2::ExtrapolationException& ex) {
-      ROS_ERROR("Extrapolation Error: %s\n", ex.what());
+      ROS_ERROR("Extrapolations Error: %s\n", ex.what());
       if (!global_plan.empty())
         ROS_ERROR("Global Frame: %s Plan Frame size %d: %s\n", global_frame.c_str(), (unsigned int)global_plan.size(), global_plan[0].header.frame_id.c_str());
 
